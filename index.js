@@ -1,22 +1,23 @@
 import { Client, GatewayIntentBits } from "discord.js";
 import OpenAI from "openai";
 
-// Debug: kiểm tra secrets
+// Debug: kiểm tra token và key
 console.log("🔑 DISCORD_TOKEN tồn tại?", !!process.env.DISCORD_TOKEN);
-console.log("🔑 OPENAI_API_KEY tồn tại?", !!process.env.OPENAI_API_KEY);
+console.log("🔑 OPENROUTER_API_KEY tồn tại?", !!process.env.OPENROUTER_API_KEY);
 
 // Khởi tạo Discord client
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMessages,
-    GatewayIntentBits.MessageContent
+    GatewayIntentBits.MessageContent,
   ],
 });
 
-// Kết nối OpenAI
+// Kết nối OpenRouter (dùng như OpenAI nhưng khác baseURL)
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+  apiKey: process.env.OPENROUTER_API_KEY,
+  baseURL: "https://openrouter.ai/api/v1",
 });
 
 // Khi bot online
@@ -37,21 +38,21 @@ client.on("messageCreate", async (message) => {
 
     try {
       const response = await openai.chat.completions.create({
-        model: "gpt-4o-mini", // hoặc "gpt-3.5-turbo" nếu bạn muốn
+        model: "openai/gpt-3.5-turbo", // có thể đổi sang "openai/gpt-4" hoặc "anthropic/claude-3-haiku"
         messages: [{ role: "user", content: prompt }],
       });
 
       const reply = response.choices[0].message.content;
       message.reply(reply);
     } catch (err) {
-      console.error("❌ Lỗi khi gọi OpenAI:");
+      console.error("❌ Lỗi khi gọi OpenRouter:");
       if (err.response) {
         console.error("Status:", err.response.status);
         console.error("Data:", err.response.data);
       } else {
         console.error(err.message);
       }
-      message.reply("⚠️ There was an error calling I WILL REPLY!");
+      message.reply("⚠️ Có lỗi khi gọi ChatGPT (OpenRouter)!");
     }
   }
 });
