@@ -1,7 +1,7 @@
 import { Client, GatewayIntentBits } from "discord.js";
 import OpenAI from "openai";
 
-// Debug: Kiểm tra secrets đã load chưa
+// Debug: kiểm tra secrets
 console.log("🔑 DISCORD_TOKEN tồn tại?", !!process.env.DISCORD_TOKEN);
 console.log("🔑 OPENAI_API_KEY tồn tại?", !!process.env.OPENAI_API_KEY);
 
@@ -14,7 +14,7 @@ const client = new Client({
   ],
 });
 
-// Kết nối OpenAI bằng API key
+// Kết nối OpenAI
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
@@ -24,7 +24,7 @@ client.on("ready", () => {
   console.log(`✅ Bot đã đăng nhập: ${client.user.tag}`);
 });
 
-// Khi có tin nhắn mới
+// Khi có tin nhắn
 client.on("messageCreate", async (message) => {
   if (message.author.bot) return;
 
@@ -37,15 +37,21 @@ client.on("messageCreate", async (message) => {
 
     try {
       const response = await openai.chat.completions.create({
-        model: "gpt-3.5-turbo",
+        model: "gpt-4o-mini", // hoặc "gpt-3.5-turbo" nếu bạn muốn
         messages: [{ role: "user", content: prompt }],
       });
 
       const reply = response.choices[0].message.content;
       message.reply(reply);
     } catch (err) {
-      console.error("❌ Lỗi:", err);
-      message.reply("⚠️ Có lỗi khi gọi ChatGPT!");
+      console.error("❌ Lỗi khi gọi OpenAI:");
+      if (err.response) {
+        console.error("Status:", err.response.status);
+        console.error("Data:", err.response.data);
+      } else {
+        console.error(err.message);
+      }
+      message.reply("⚠️ There was an error calling I WILL REPLY!");
     }
   }
 });
